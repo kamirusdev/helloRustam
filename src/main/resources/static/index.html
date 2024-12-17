@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>SQL Query Executor</title>
+    <style>
+        body {
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .result-container {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-radius: 4px;
+            white-space: pre-wrap;
+        }
+        button {
+            padding: 8px 15px;
+            margin: 5px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        input, textarea {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="section">
+        <h3>SQL Query</h3>
+        <textarea id="sqlQuery" rows="4" placeholder="Введите SQL запрос"></textarea>
+        <button onclick="executeSql()">Do it</button>
+        <div id="sqlResult" class="result-container"></div>
+    </div>
+
+    <div class="section">
+        <h3>Все данные</h3>
+        <button onclick="getAllInfo()">Получить все данные</button>
+        <div id="allDataResult" class="result-container"></div>
+    </div>
+
+    <div class="section">
+        <h3>Добавление записи</h3>
+        <input type="text" id="descriptionInput" placeholder="Введите описание">
+        <button onclick="addDescription()">Добавить запись</button>
+    </div>
+
+    <div class="section">
+        <h3>Удаление записи</h3>
+        <input type="number" id="deleteIdInput" placeholder="Введите ID для удаления">
+        <button onclick="deleteById()">Удалить запись</button>
+    </div>
+</div>
+
+
+<script>
+    function formatJson(data) {
+        return JSON.stringify(data, null, 2)
+            .replace(/\n/g, '<br>')
+            .replace(/\s/g, '&nbsp;');
+    }
+
+
+    function deleteById() {
+        const id = document.getElementById('deleteIdInput').value;
+        fetch('/delete-by-id', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: id
+        })
+            .then(() => {
+                document.getElementById('deleteIdInput').value = '';
+                getAllInfo(); // Обновляем список после удаления
+            });
+    }
+
+    function executeSql() {
+        const query = document.getElementById('sqlQuery').value;
+        fetch('/execute-sql', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({query: query})
+        })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('sqlResult').innerHTML = formatJson(data);
+            });
+    }
+
+    function getAllInfo() {
+        fetch('/get-all-info')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('allDataResult').innerHTML = formatJson(data);
+            });
+    }
+
+    function addDescription() {
+        const description = document.getElementById('descriptionInput').value;
+        fetch('/add-description', {
+            method: 'POST',
+            headers: {'Content-Type': 'text/plain'},
+            body: description
+        })
+            .then(() => {
+                document.getElementById('descriptionInput').value = '';
+                getAllInfo(); // Обновляем список после добавления
+            });
+    }
+
+
+</script>
+</body>
+</html>
